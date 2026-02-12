@@ -1,689 +1,707 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Coaching スキルドリルアプリ</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>POP TWIN SHOOTER with SOUND</title>
 <style>
-  :root{
-    --bg:#ffffff;
-    --ink:#1f2937;
-    --muted:#6b7280;
-    --border:#e5e7eb;
-    --accent:#3b82f6;
-    --accent-2:#10b981;
-    --card:#ffffff;
-    --shadow:0 10px 24px rgba(0,0,0,.06);
-  }
-  *{box-sizing:border-box}
-  body{
-    margin:0; background:var(--bg); color:var(--ink);
-    font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans JP","Yu Gothic",Meiryo,sans-serif;
-  }
-  .container{ max-width:1000px; margin:0 auto; padding:24px 16px 48px }
-  header{ display:flex; align-items:flex-start; gap:12px; margin-bottom:16px }
-  .logo{
-    width:42px; height:42px; border-radius:10px;
-    background:linear-gradient(135deg,var(--accent),#60a5fa);
-    display:grid; place-items:center; color:#fff; font-weight:900; box-shadow:var(--shadow);
-  }
-  h1{ font-size:22px; margin:0 }
-  .note{ color:var(--muted); margin:4px 0 0; font-size:13px }
-
-  .panel{
-    background:var(--card); border:1px solid var(--border);
-    border-radius:16px; padding:16px; box-shadow:var(--shadow); margin-bottom:16px;
-  }
-
-  .grid{ display:grid; grid-template-columns: repeat(3, minmax(180px,1fr)); gap:12px }
-  .field label{ display:block; font-size:12px; color:var(--muted); margin:0 0 6px 6px }
-  .field input{
-    width:100%; padding:12px 14px; background:#fff; color:var(--ink);
-    border:1px solid var(--border); border-radius:12px; outline:none;
-    transition:border .15s, box-shadow .15s, transform .06s;
-  }
-  .field input:focus{
-    border-color:var(--accent);
-    box-shadow:0 0 0 4px rgba(59,130,246,.16);
-    transform: translateY(-1px);
-  }
-
-  .buttons{ display:flex; flex-wrap:wrap; gap:10px; margin-top:12px }
-  button{
-    appearance:none; border:none; cursor:pointer;
-    padding:12px 16px; border-radius:12px; font-size:15px; font-weight:600;
-    transition: transform .06s ease, filter .15s ease, background .2s, box-shadow .2s, opacity .2s;
-  }
-  .primary{
-    color:#fff; background:linear-gradient(135deg,var(--accent),#60a5fa);
-    box-shadow:0 12px 28px rgba(59,130,246,.24), inset 0 -2px 0 rgba(0,0,0,.06);
-  }
-  .secondary{
-    color:var(--ink); background:#fff; border:1px solid var(--border);
-  }
-  .ghost{
-    color:var(--muted); background:#fff; border:1px dashed var(--border);
-  }
-
-  .error{
-    color:#b00020; background:#fff5f6; border:1px solid #ffd8dd;
-    padding:10px 12px; border-radius:12px; font-size:13px; margin-top:12px; display:none;
-  }
-
-  .results{
-    display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap:14px;
-  }
-  .round{
-    background:var(--card);
-    border:1px solid var(--border);
-    border-radius:16px;
-    padding:14px;
-    box-shadow:var(--shadow);
-    min-height:164px;
-  }
-  .round h3{
-    margin:0 0 10px; font-size:15px; display:flex; align-items:center; gap:10px; color:var(--muted);
-  }
-  .badge{
-    color:#064e3b; background:linear-gradient(135deg,var(--accent-2),#34d399);
-    padding:2px 10px; border-radius:999px; font-weight:800; font-size:12px;
-  }
-  .assign{ display:grid; gap:10px }
-  .role{
-    display:flex; align-items:center; gap:12px;
-    padding:12px; border-radius:12px; background:#ffffff; border:1px solid var(--border);
-    position:relative; overflow:hidden;
-  }
-  .tag{
-    min-width:94px; text-align:center; color:#fff;
-    background:linear-gradient(135deg,var(--accent),#60a5fa);
-    border-radius:999px; font-size:12px; font-weight:800; padding:4px 10px;
-  }
-  .name{ font-size:16px; font-weight:700; letter-spacing:.02em }
-  .placeholder{ color:var(--muted); font-weight:500; letter-spacing:.08em }
-  .reveal{ animation: pop .22s ease-out forwards; transform:scale(.98); opacity:0 }
-  @keyframes pop{ to{ transform:scale(1); opacity:1 } }
-
-  /* タイマー（ページ最下部） */
-  .timer-wrap{ display:flex; flex-wrap:wrap; gap:16px; align-items:center; }
-  .timer-face{
-    min-width:220px; padding:12px 16px; border:1px solid var(--border); border-radius:12px; background:#fff; box-shadow:var(--shadow);
-  }
-  .time{
-    font-variant-numeric: tabular-nums; font-size:40px; font-weight:800; letter-spacing:.03em; text-align:center; color:var(--ink);
-  }
-  .time.ended{ color:#ef4444 }
-  .timer-face.ended{ border-color:#ef4444; box-shadow:0 0 0 4px rgba(239,68,68,.15); animation:pulse 900ms ease-out 2 }
-  @keyframes pulse{ 0%{transform:scale(1)} 50%{transform:scale(1.02)} 100%{transform:scale(1)} }
-  .timer-sub{ text-align:center; color:var(--muted); font-size:12px; margin-top:4px }
-  .round-nav{ display:flex; gap:8px; align-items:center }
-  .round-label{ font-size:14px; color:var(--muted) }
-  .preset-row{ display:flex; gap:8px; align-items:center; flex-wrap:wrap }
-  .custom-row{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:8px }
-  .num{ width:84px; padding:10px 12px; border:1px solid var(--border); border-radius:10px; font-size:14px }
-  .grow{ flex:1 1 auto }
-
-  .footer{
-    color:var(--muted); font-size:12px; margin-top:18px;
-    display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between;
-    border-top:1px solid var(--border); padding-top:12px;
-  }
-  .license{
-    padding:6px 10px; border-radius:10px; border:1px dashed var(--border); background:#fafafa;
-  }
-
-  /* 合意オーバーレイ（固定文・OKで開始） */
-  .overlay{
-    position:fixed; inset:0; background:rgba(0,0,0,.5);
-    display:flex; align-items:center; justify-content:center; padding:16px; z-index:50;
-  }
-  .dialog{
-    max-width:780px; width:100%;
-    background:#fff; color:var(--ink); border-radius:16px; border:1px solid var(--border);
-    box-shadow:0 20px 40px rgba(0,0,0,.25);
-    padding:16px;
-  }
-  .dialog h2{ margin:0 0 8px; font-size:18px }
-  .dialog p{ margin:6px 0; color:#374151; line-height:1.6 }
-  .bullet{ margin:8px 0 0 0; padding-left:18px; color:#374151 }
-  .bullet li{ margin:6px 0 }
-  .dialog .buttons{ margin-top:12px; display:flex; gap:10px; flex-wrap:wrap }
-  @media (max-width:720px){ .grid{ grid-template-columns: 1fr } }
+    body {
+        margin: 0;
+        background-color: #222;
+        color: #fff;
+        font-family: 'Arial Rounded MT Bold', 'Helvetica Rounded', sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        overflow: hidden;
+    }
+    #game-container {
+        display: flex;
+        gap: 20px;
+        align-items: flex-start;
+    }
+    canvas {
+        background-color: #9ACD32;
+        border: 4px solid #fff;
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.8);
+    }
+    .instructions {
+        background: #333;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        font-size: 14px;
+        line-height: 1.6;
+        width: 260px;
+    }
+    h3 { margin-top: 0; color: #FFD700; border-bottom: 2px solid #555; padding-bottom: 5px; }
+    .key { display: inline-block; background: #555; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+    .color-yellow { color: #FFD700; font-weight: bold; }
+    .color-blue { color: #1E90FF; font-weight: bold; }
+    .color-white { color: #FFFFFF; font-weight: bold; }
+    .color-red { color: #FF4500; font-weight: bold; }
+    .sound-notice { color: #00FF7F; font-weight: bold; font-size: 13px; margin-top: 10px; display: block;}
 </style>
 </head>
 <body>
-  <!-- 合意（守秘・学びと実験・共に創る）-->
-  <div id="consentOverlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="consentTitle">
-    <div class="dialog">
-      <h2 id="consentTitle">合意の確認</h2>
-      <p>本アプリは、コーチングのスキルドリルを「効率的に・遊び心をもって」行うための場づくりを支援します。安心・安全な学びのため、以下に同意のうえ開始してください。</p>
-      <ul class="bullet">
-        <li><strong>守秘義務</strong>: ここで話された内容は場の外に持ち出しません。</li>
-        <li><strong>学びと実験の場</strong>: 完璧さではなく学び・挑戦を尊重します。うまくいかないことも実験の一部です。</li>
-        <li><strong>共に創る</strong>: 相互承認・時間厳守・フィードフォワードで、場を一緒に良くしていきます。</li>
-      </ul>
-      <div class="buttons">
-        <button id="consentOk" class="primary">OK（同意して始める）</button>
-      </div>
-      <p class="note" style="margin-top:6px">この合意はブラウザを閉じるまで有効です。</p>
+
+<div id="game-container">
+    <canvas id="gameCanvas" width="400" height="600"></canvas>
+    
+    <div class="instructions">
+        <h3>操作方法</h3>
+        <p><span class="key">↑↓←→</span> 移動</p>
+        <p><span class="key">Z</span> 対空ショット（長押し可）</p>
+        <p><span class="key">X</span> 対地ボム</p>
+        <p><span class="key">Enter</span> 開始 / リスタート</p>
+        
+        <h3>ベルの効果</h3>
+        <p>
+            <span class="color-yellow">■ 黄色：</span>スコアUP<br>
+            <span class="color-blue">■ 青色：</span>スピードUP<br>
+            <span class="color-white">■ 白色：</span>ツイン砲<br>
+            <span class="color-red">■ 赤色：</span>バリア (被弾を1回防ぐ)<br>
+            <span style="font-size: 12px; color: #aaa;">※ショットを5回当てるごとに変化</span>
+        </p>
+
+        <h3>システム</h3>
+        <p>敵の攻撃を受けると、残機が減る前にまず<b>両腕が壊れ</b>、対地ボムが撃てなくなります。</p>
+        <p>腕が壊れた直後に降りてくる<b>救急車🚑</b>に触れると直ります（取り逃がすとそのまま進行）。</p>
+        
+        <span class="sound-notice">🔊 音声対応！<br>※Enterキーを押すとBGM/SEが鳴ります。</span>
     </div>
-  </div>
-
-  <div class="container" aria-hidden="true" id="appRoot">
-    <header>
-      <div class="logo" aria-hidden="true">Co</div>
-      <div>
-        <h1>Coaching スキルドリルアプリ</h1>
-        <p class="note">初回のみランダム。2回目・3回目は役割が順に回るローテーションで割り当てます。</p>
-      </div>
-    </header>
-
-    <!-- 参加者・抽選 -->
-    <section class="panel" aria-labelledby="assignTitle">
-<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px"> <div id="assignTitle" style="font-weight:700">参加者と抽選</div> </div>
-      <div class="grid">
-        <div class="field">
-          <label>参加者1</label>
-          <input id="p1" type="text" placeholder="参加者1" autocomplete="off" spellcheck="false">
-        </div>
-        <div class="field">
-          <label>参加者2</label>
-          <input id="p2" type="text" placeholder="参加者2" autocomplete="off" spellcheck="false">
-        </div>
-        <div class="field">
-          <label>参加者3</label>
-          <input id="p3" type="text" placeholder="参加者3" autocomplete="off" spellcheck="false">
-        </div>
-      </div>
-
-      <div class="buttons">
-        <button id="drawBtn" class="primary">抽選する</button>
-        <button id="redrawBtn" class="secondary" disabled>もう一度 抽選</button>
-        <button id="copyBtn" class="secondary" disabled>結果をコピー</button>
-      </div>
-      <div id="error" class="error"></div>
-    </section>
-
-    <!-- 結果 -->
-    <section id="results" class="results" aria-live="polite"></section>
-
-    <!-- タイマー（ページ最下部・プリセット＋カスタム） -->
-    <section class="panel" aria-labelledby="timerTitle">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px">
-        <div id="timerTitle" style="font-weight:700">タイマー</div>
-        <div class="preset-row">
-          <span class="note">プリセット:</span>
-          <button class="chip" data-min="15">15分</button>
-          <button class="chip" data-min="25">25分</button>
-          <button class="chip" data-min="30">30分</button>
-        </div>
-      </div>
-
-      <div class="custom-row"> <span class="note">カスタム設定:</span> <input id="mInput" class="num" type="number" min="0" max="600" step="1" value="25" aria-label="分"> 分 <input id="sInput" class="num" type="number" min="0" max="59" step="1" value="0" aria-label="秒"> 秒 <button id="applyCustom" class="secondary">時間を適用</button> <div class="grow"></div> </div>
-
-      <div class="timer-wrap" style="margin-top:10px">
-        <div id="timerFace" class="timer-face">
-          <div id="time" class="time" aria-live="polite">25:00</div>
-          <div id="timeNote" class="timer-sub">第1回 | 選択時間: 25分 0秒</div>
-        </div>
-        <div class="buttons">
-          <button id="startPause" class="primary">開始</button>
-          <button id="resetTimer" class="secondary">リセット</button>
-          <button id="popupBtn" class="secondary">ポップアップ表示</button>
-        </div>
-      </div>
-    </section>
-
- <div class="footer"> <div>Created by Naomitchy</div> <div class="license">このアプリは CC0（著作権放棄・No Rights Reserved）相当で提供します。出典不要・改変・再配布も自由にご利用ください。</div> </div>
-
+</div>
 
 <script>
-(function(){
-  'use strict';
-  // 合意（固定文面）
-  var consentOverlay = document.getElementById('consentOverlay');
-  var consentOk = document.getElementById('consentOk');
-  var appRoot = document.getElementById('appRoot');
-  function showConsent(){ consentOverlay.style.display='flex'; appRoot.setAttribute('aria-hidden','true'); }
-  function hideConsent(){ consentOverlay.style.display='none'; appRoot.removeAttribute('aria-hidden'); }
-  if (sessionStorage.getItem('consented') === '1'){ hideConsent(); } else { showConsent(); }
-  consentOk.addEventListener('click', function(){
-    sessionStorage.setItem('consented','1');
-    hideConsent();
-  });
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const WIDTH = canvas.width;
+const HEIGHT = canvas.height;
 
-  // 役割・要素参照
-  var roles = ["コーチ","クライアント","オブザーバー"];
-  var resultsEl = document.getElementById('results');
-  var drawBtn = document.getElementById('drawBtn');
-  var redrawBtn = document.getElementById('redrawBtn');
-  var copyBtn = document.getElementById('copyBtn');
-  var errEl = document.getElementById('error');
-  var p1 = document.getElementById('p1');
-  var p2 = document.getElementById('p2');
-  var p3 = document.getElementById('p3');
-
-  // 入力欄を空に（自動復元対策）
-  if (p1) p1.value = "";
-  if (p2) p2.value = "";
-  if (p3) p3.value = "";
-
-  // タイマーDOM
-  var timerFace = document.getElementById('timerFace');
-  var timeEl = document.getElementById('time');
-  var timeNoteEl = document.getElementById('timeNote');
-  var startPauseBtn = document.getElementById('startPause');
-  var resetBtn = document.getElementById('resetTimer');
-  var popupBtn = document.getElementById('popupBtn');
-  var chipBtns = Array.prototype.slice.call(document.querySelectorAll('.chip'));
-  var mInput = document.getElementById('mInput');
-  var sInput = document.getElementById('sInput');
-  var applyCustomBtn = document.getElementById('applyCustom');
-
-  // タイマー状態（デフォルト25:00）
-  var selMin = 25, selSec = 0;
-  var didEndNotify = false; // 終了通知（ビープ等）を一度だけ行ったか
-  var running = false;
-  var remainingMs = (selMin*60 + selSec) * 1000;
-  var endAt = 0;
-  var rafId = 0;
-
-  function setPreset(min, sec){
-    selMin = Math.max(0, Math.floor(min||0));
-    selSec = Math.max(0, Math.min(59, Math.floor(sec||0)));
-    mInput.value = String(selMin);
-    sInput.value = String(selSec);
-    chipBtns.forEach(function(b){
-      b.classList.toggle('active', Number(b.dataset.min)===selMin && selSec===0);
-    });
-    if (!running){
-      remainingMs = (selMin*60 + selSec) * 1000;
-      renderTime(remainingMs);
+// --- キー入力管理 ---
+const keys = {};
+document.addEventListener('keydown', e => {
+    keys[e.code] = true;
+    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'KeyZ', 'KeyX', 'Enter'].includes(e.code)) {
+        e.preventDefault();
     }
-    updateTimeNote();
-  }
-
-function updateTimeNote(){
-timeNoteEl.textContent = "選択時間: " + selMin + "分 " + selSec + "秒";
-updatePopupUI(false); // ポップアップ未使用でもそのままでOK
-}
-
-  function renderTime(ms){
-  // msが負になったら「経過オーバー」をマイナス表示
-  var neg = ms < 0;
-  var absMs = Math.abs(ms);
-  var totalSec = Math.ceil(absMs / 1000); // 1msでも過ぎたら -00:01 と表示
-  var m = Math.floor(totalSec / 60);
-  var s = totalSec % 60;
-  var text = (neg ? '-' : '') + (m < 10 ? '0' + m : m) + ':' + (s < 10 ? '0' + s : s);
-  timeEl.textContent = text;
-  updatePopupUI(true); 
-  }
-
-  function tick(){
-var now = Date.now();
-var ms = endAt - now;
-
-// 残り（負も含む）を保持
-remainingMs = ms;
-
-// 0を初めて下回った瞬間にだけ通知（色/音/バイブ）
-if (ms <= 0 && !didEndNotify){
-timerFace.classList.add('ended');
-timeEl.classList.add('ended');
-playBeep();
-if (navigator.vibrate) try{ navigator.vibrate([120,60,120]); }catch(_){}
-didEndNotify = true;
-}
-
-// 残り（負も含む）を表示。負なら -mm:ss で表示されます
-renderTime(ms);
-
-// running=trueの間は継続（0を過ぎても継続）
-if (running){
-rafId = requestAnimationFrame(tick);
-}
-}
-
-  // オーディオ（終了時ビープ）
-  var audioCtx = null;
-  function ensureAudio(){
-    if (!audioCtx){
-      try{
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      }catch(_){}
-    }
-    if (audioCtx && audioCtx.state === 'suspended'){
-      audioCtx.resume().catch(function(){});
-    }
-  }
-  function playBeep(){
-    if (!audioCtx) return;
-    try{
-      var t0 = audioCtx.currentTime;
-      [0, 0.35].forEach(function(offset){
-        var osc = audioCtx.createOscillator();
-        var gain = audioCtx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(880, t0+offset); // A5
-        gain.gain.setValueAtTime(0, t0+offset);
-        gain.gain.linearRampToValueAtTime(0.18, t0+offset+0.02);
-        gain.gain.exponentialRampToValueAtTime(0.0001, t0+offset+0.28);
-        osc.connect(gain).connect(audioCtx.destination);
-        osc.start(t0+offset);
-        osc.stop(t0+offset+0.3);
-      });
-    }catch(_){}
-  }
-
-  function startTimer(){
-    if (running) return;
-    ensureAudio();
-    timerFace.classList.remove('ended');
-    timeEl.classList.remove('ended');
-    running = true;
-    endAt = Date.now() + remainingMs;
-    startPauseBtn.textContent = '一時停止';
-    updatePopupUI(false);
-    rafId = requestAnimationFrame(tick);
-  }
-  function pauseTimer(){
-    if (!running) return;
-    running = false;
-    cancelAnimationFrame(rafId);
-    remainingMs = endAt - Date.now();
-    startPauseBtn.textContent = '再開';
-    updatePopupUI(false);
-  }
-  function resetTimer(){
-  running = false;
-  cancelAnimationFrame(rafId);
-  didEndNotify = false; // 終了通知フラグを戻す
-  remainingMs = (selMin*60 + selSec) * 1000;
-  renderTime(remainingMs);
-  startPauseBtn.textContent = '開始';
-  timerFace.classList.remove('ended');
-  timeEl.classList.remove('ended');
-}
-
-  startPauseBtn.addEventListener('click', function(){ if (running) pauseTimer(); else startTimer(); });
-  resetBtn.addEventListener('click', resetTimer);
-  chipBtns.forEach(function(btn){
-    btn.addEventListener('click', function(){
-      setPreset(Number(btn.dataset.min), 0);
-      resetTimer();
-      ensureAudio(); // ユーザー操作でオーディオ解禁
-    });
-  });
-  applyCustomBtn.addEventListener('click', function(){
-    var m = parseInt(mInput.value,10); var s = parseInt(sInput.value,10);
-    if (isNaN(m)||m<0) m=0;
-    if (isNaN(s)||s<0) s=0;
-    if (s>59) s=59;
-    setPreset(m, s);
-    resetTimer();
-    ensureAudio();
-  });
-
-// ここから: ポップアップ機能
-var popupWin = null;
-var lastPopupUpdate = 0;
-
-function isPopupOpen(){ return popupWin && !popupWin.closed; }
-function setPopupBtnText(){
-if (!popupBtn) return;
-popupBtn.textContent = isPopupOpen() ? 'ポップアップを閉じる' : 'ポップアップ表示';
-}
-
-function openPopup(){
-if (isPopupOpen()){ popupWin.focus(); return; }
-popupWin = window.open('', 'timer_popup',
-'width=280,height=200,menubar=0,toolbar=0,location=0,status=0,resizable=1');
-if (!popupWin){
-alert('ポップアップがブロックされました。ブラウザのポップアップ許可を有効にしてください。');
-return;
-}
-
-popupWin.document.write(
-'<!doctype html><html><head><meta charset="utf-8">'+
-'<title>タイマー</title>'+
-'<style>'+
-'body{margin:10px;font-family:system-ui,-apple-system,Segoe UI,Roboto,"Noto Sans JP","Yu Gothic",Meiryo,sans-serif;color:#1f2937;background:#fff}'+
-'.p-face{border:1px solid #e5e7eb;border-radius:12px;padding:10px;box-shadow:0 8px 18px rgba(0,0,0,.06)}'+
-'.p-time{font-variant-numeric:tabular-nums;font-size:42px;font-weight:800;text-align:center}'+
-'.ended .p-time{color:#ef4444}'+
-'.p-sub{font-size:12px;color:#6b7280;text-align:center;margin-top:4px}'+
-'.row{display:flex;gap:8px;margin-top:10px;justify-content:center}'+
-'button{appearance:none;border:1px solid #e5e7eb;border-radius:10px;padding:8px 12px;font-weight:600;background:#fff;cursor:pointer}'+
-'</style></head><body>'+
-'<div id="pFace" class="p-face">'+
-'<div id="pTime" class="p-time">--:--</div>'+
-'<div id="pNote" class="p-sub"></div>'+
-'</div>'+
-'<div class="row">'+
-'<button id="pToggle">開始</button>'+
-'<button id="pReset">リセット</button>'+
-'<button id="pClose">閉じる</button>'+
-'</div>'+
-'</body></html>'
-);
-popupWin.document.close();
-
-// ポップアップ閉じられたら状態更新
-popupWin.addEventListener('beforeunload', function(){
-setTimeout(function(){ popupWin = null; setPopupBtnText(); }, 0);
 });
+document.addEventListener('keyup', e => { keys[e.code] = false; });
 
-// ポップアップのボタン → 親側の関数を呼ぶ
-popupWin.document.getElementById('pToggle').addEventListener('click', function(){
-if (running) pauseTimer(); else startTimer();
-});
-popupWin.document.getElementById('pReset').addEventListener('click', function(){
-resetTimer();
-});
-popupWin.document.getElementById('pClose').addEventListener('click', function(){
-popupWin.close();
-});
-// スペースキーで開始/一時停止
-popupWin.addEventListener('keydown', function(e){
-if (e.key === ' '){
-e.preventDefault();
-if (running) pauseTimer(); else startTimer();
-}
-});
-
-setPopupBtnText();
-updatePopupUI(false);
+// 汎用当たり判定
+function isCollide(a, b) {
+    const dx = a.x - b.x; const dy = a.y - b.y;
+    return Math.sqrt(dx * dx + dy * dy) < (a.r + b.r);
 }
 
-function closePopup(){
-if (isPopupOpen()) popupWin.close();
+// ==========================================
+// Web Audio API サウンドシステム（波形合成）
+// ==========================================
+class SoundSystem {
+    constructor() {
+        this.ctx = null;
+        this.bgmPlaying = false;
+        this.nextNoteTime = 0;
+        this.bassTime = 0;
+        this.noteIndex = 0;
+        this.bassIndex = 0;
+        this.tempo = 150; // BPM
+        this.beatLen = 60 / this.tempo;
+
+        this.sirenOsc = null;
+        this.sirenLfo = null;
+
+        // 音階周波数
+        const C4=261.6, D4=293.7, Db4=277.2, E4=329.6, F4=349.2, G4=392.0, A4=440.0, B4=493.9;
+        const C5=523.3, D5=587.3, E5=659.3, F5=698.5, G5=784.0, A5=880.0, B5=987.8, C6=1046.5;
+        const _ = 0;
+
+        // ツインビー風ポップBGM [周波数, 16分音符分の長さ]
+        this.melody = [
+            [C5,2], [E5,2], [G5,2], [C6,2], [A5,2], [F5,2], [C6,4],
+            [G5,2], [E5,2], [G5,2], [F5,2], [E5,2], [D5,2], [C5,4],
+            [D5,2], [F5,2], [A5,2], [G5,2], [F5,2], [E5,2], [D5,4],
+            [C5,2], [E5,2], [G5,2], [C6,2], [A5,2], [B5,2], [C6,4]
+        ];
+        this.bass = [
+            [C4,4], [G4,4], [F4,4], [C4,4], [C4,4], [G4,4], [C4,4], [G4,4],
+            [D4,4], [A4,4], [G4,4], [D4,4], [C4,4], [G4,4], [F4,4], [C4,4]
+        ];
+    }
+    
+    init() {
+        if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+    }
+
+    playTone(freq, type, duration, vol, slideFreq=null, startTime=null) {
+        if (!this.ctx || freq === 0) return;
+        const t = startTime !== null ? startTime : this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, t);
+        if (slideFreq) osc.frequency.exponentialRampToValueAtTime(slideFreq, t + duration);
+
+        gain.gain.setValueAtTime(vol, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
+
+        osc.connect(gain); gain.connect(this.ctx.destination);
+        osc.start(t); osc.stop(t + duration);
+    }
+    
+    playNoise(duration, vol) {
+        if (!this.ctx) return;
+        const bufferSize = this.ctx.sampleRate * duration;
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = buffer;
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass'; filter.frequency.value = 800;
+
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+
+        noise.connect(filter); filter.connect(gain); gain.connect(this.ctx.destination);
+        noise.start();
+    }
+
+    // --- 効果音群 ---
+    seShoot()      { this.playTone(880, 'square', 0.1, 0.03, 440); }
+    seBomb()       { this.playTone(400, 'sine', 0.3, 0.05, 100); }
+    seExplosion()  { this.playNoise(0.3, 0.2); this.playTone(150, 'sawtooth', 0.3, 0.05, 50); }
+    seEnemyHit()   { this.playTone(400, 'square', 0.1, 0.04, 200); }
+    seCloud()      { this.playTone(800, 'sine', 0.1, 0.04, 1200); }
+    seBellHit()    { this.playTone(1200, 'triangle', 0.1, 0.05, 1400); }
+    seEnemyShot()  { this.playTone(1000, 'square', 0.1, 0.02, 600); }
+    seDamage()     { this.playNoise(0.5, 0.2); this.playTone(200, 'sawtooth', 0.4, 0.08, 50); }
+    
+    seBellGet() {
+        if (!this.ctx) return;
+        const t = this.ctx.currentTime;
+        this.playTone(659.25, 'square', 0.1, 0.04, null, t);
+        this.playTone(880.00, 'square', 0.1, 0.04, null, t + 0.1);
+        this.playTone(1046.50, 'square', 0.2, 0.04, null, t + 0.2);
+    }
+    seHeal() {
+        if (!this.ctx) return;
+        const t = this.ctx.currentTime;
+        this.playTone(523.25, 'sine', 0.1, 0.05, null, t);
+        this.playTone(659.25, 'sine', 0.1, 0.05, null, t + 0.1);
+        this.playTone(783.99, 'sine', 0.2, 0.05, null, t + 0.2);
+        this.playTone(1046.50, 'sine', 0.4, 0.05, null, t + 0.4);
+    }
+    seGameOver() {
+        if (!this.ctx) return;
+        const t = this.ctx.currentTime;
+        this.playTone(293.7, 'sawtooth', 0.4, 0.05, 280, t);
+        this.playTone(277.2, 'sawtooth', 0.4, 0.05, 260, t + 0.4);
+        this.playTone(261.6, 'sawtooth', 0.8, 0.05, 200, t + 0.8);
+    }
+
+    // --- 救急車のサイレン ---
+    startSiren() {
+        if (!this.ctx || this.sirenOsc) return;
+        this.sirenOsc = this.ctx.createOscillator();
+        this.sirenLfo = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        const lfoGain = this.ctx.createGain();
+
+        this.sirenOsc.type = 'sine';
+        this.sirenOsc.frequency.value = 600;
+        this.sirenLfo.type = 'square';
+        this.sirenLfo.frequency.value = 2.5; // サイレンの周期
+        
+        lfoGain.gain.value = 200;
+        this.sirenLfo.connect(lfoGain);
+        lfoGain.connect(this.sirenOsc.frequency);
+
+        gain.gain.value = 0.02;
+        this.sirenOsc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        this.sirenOsc.start();
+        this.sirenLfo.start();
+    }
+    stopSiren() {
+        if (this.sirenOsc) {
+            this.sirenOsc.stop(); this.sirenLfo.stop();
+            this.sirenOsc = null;
+        }
+    }
+
+    // --- BGM制御 ---
+    startBGM() {
+        this.init();
+        if (this.bgmPlaying) return;
+        this.bgmPlaying = true;
+        this.nextNoteTime = this.ctx.currentTime + 0.1;
+        this.bassTime = this.nextNoteTime;
+        this.noteIndex = 0;
+        this.bassIndex = 0;
+    }
+    stopBGM() { this.bgmPlaying = false; }
+    
+    updateBGM() {
+        if (!this.bgmPlaying || !this.ctx) return;
+        const ahead = 0.1;
+        
+        // タブ非アクティブ等で時間が大きくズレた場合の補正
+        if (this.nextNoteTime < this.ctx.currentTime) {
+            this.nextNoteTime = this.ctx.currentTime + 0.05;
+            this.bassTime = this.nextNoteTime;
+        }
+
+        while (this.nextNoteTime < this.ctx.currentTime + ahead) {
+            const note = this.melody[this.noteIndex];
+            const noteDur = note[1] * (this.beatLen / 4);
+            if (note[0] !== 0) this.playTone(note[0], 'square', noteDur * 0.8, 0.02, null, this.nextNoteTime);
+            this.nextNoteTime += noteDur;
+            this.noteIndex = (this.noteIndex + 1) % this.melody.length;
+        }
+        while (this.bassTime < this.ctx.currentTime + ahead) {
+            const bNote = this.bass[this.bassIndex];
+            const bDur = bNote[1] * (this.beatLen / 4);
+            if (bNote[0] !== 0) this.playTone(bNote[0], 'triangle', bDur * 0.8, 0.03, null, this.bassTime);
+            this.bassTime += bDur;
+            this.bassIndex = (this.bassIndex + 1) % this.bass.length;
+        }
+    }
 }
 
-function updatePopupUI(throttle){
-if (!isPopupOpen()) return;
-var now = (window.performance && performance.now) ? performance.now() : Date.now();
-if (throttle && (now - lastPopupUpdate) < 160) return; // 160msに間引き
-lastPopupUpdate = now;
 
-var d = popupWin.document;
-var pTime = d.getElementById('pTime');
-var pNote = d.getElementById('pNote');
-var pToggle = d.getElementById('pToggle');
-var pFace = d.getElementById('pFace');
+// ==========================================
+// ゲームクラス群
+// ==========================================
 
-if (pTime) pTime.textContent = timeEl.textContent;
-if (pNote) pNote.textContent = timeNoteEl.textContent;
-if (pToggle) pToggle.textContent = startPauseBtn.textContent;
-
-if (pFace){
-if (timeEl.classList.contains('ended')) pFace.classList.add('ended');
-else pFace.classList.remove('ended');
+class Background {
+    constructor() {
+        this.y = 0; this.islands = [];
+        for (let i = 0; i < 8; i++) {
+            this.islands.push({
+                x: Math.random() * WIDTH, y: Math.random() * HEIGHT,
+                r: 30 + Math.random() * 40, color: Math.random() > 0.5 ? '#2E8B57' : '#3CB371'
+            });
+        }
+    }
+    update() { this.y += 1.5; if (this.y >= HEIGHT) this.y = 0; }
+    draw(ctx) {
+        ctx.fillStyle = '#9ACD32'; ctx.fillRect(0, 0, WIDTH, HEIGHT);
+        for (let i = 0; i < 2; i++) {
+            let offsetY = this.y - i * HEIGHT;
+            this.islands.forEach(isl => {
+                ctx.fillStyle = isl.color;
+                ctx.beginPath(); ctx.arc(isl.x, isl.y + offsetY, isl.r, 0, Math.PI*2); ctx.fill();
+            });
+        }
+    }
 }
+
+class Particle {
+    constructor(x, y, color) {
+        this.x = x; this.y = y; this.color = color;
+        this.vx = (Math.random() - 0.5) * 6; this.vy = (Math.random() - 0.5) * 6;
+        this.life = 20 + Math.random() * 10; this.maxLife = this.life; this.active = true;
+    }
+    update() {
+        this.x += this.vx; this.y += this.vy;
+        this.life--; if (this.life <= 0) this.active = false;
+    }
+    draw(ctx) {
+        ctx.fillStyle = this.color; ctx.globalAlpha = this.life / this.maxLife;
+        ctx.beginPath(); ctx.arc(this.x, this.y, 3, 0, Math.PI*2); ctx.fill(); ctx.globalAlpha = 1.0;
+    }
 }
 
-// メイン画面のボタン
-if (popupBtn){
-popupBtn.addEventListener('click', function(){
-if (isPopupOpen()) closePopup(); else openPopup();
-});
+class Player {
+    constructor() {
+        this.x = WIDTH / 2; this.y = HEIGHT - 50; this.r = 12;
+        this.speed = 4; this.arms = true; this.twin = false;
+        this.barrier = false; this.invincible = 0;
+        this.shotCooldown = 0; this.bombCooldown = 0;
+    }
+    update(game) {
+        if (this.invincible > 0) this.invincible--;
+        if (this.shotCooldown > 0) this.shotCooldown--;
+        if (this.bombCooldown > 0) this.bombCooldown--;
+
+        if (keys['ArrowLeft']) this.x -= this.speed;
+        if (keys['ArrowRight']) this.x += this.speed;
+        if (keys['ArrowUp']) this.y -= this.speed;
+        if (keys['ArrowDown']) this.y += this.speed;
+
+        this.x = Math.max(this.r, Math.min(WIDTH - this.r, this.x));
+        this.y = Math.max(this.r, Math.min(HEIGHT - this.r, this.y));
+
+        if (keys['KeyZ'] && this.shotCooldown <= 0) {
+            game.sounds.seShoot();
+            if (this.twin) {
+                game.bullets.push(new Bullet(this.x - 8, this.y)); game.bullets.push(new Bullet(this.x + 8, this.y));
+            } else {
+                game.bullets.push(new Bullet(this.x, this.y));
+            }
+            this.shotCooldown = 10;
+        }
+
+        if (keys['KeyX'] && this.bombCooldown <= 0 && this.arms) {
+            game.sounds.seBomb();
+            game.bombs.push(new Bomb(this.x, this.y, game.sounds));
+            this.bombCooldown = 40;
+        }
+    }
+    takeDamage(game) {
+        if (this.barrier) {
+            this.barrier = false; this.invincible = 60;
+            game.sounds.seDamage();
+            game.spawnParticles(this.x, this.y, '#FF4500', 15);
+            return;
+        }
+        if (this.arms) {
+            this.arms = false; this.invincible = 60;
+            game.sounds.seDamage();
+            game.sounds.startSiren();
+            game.spawnParticles(this.x, this.y, '#1E90FF', 15);
+            game.ambulances.push(new Ambulance(this.x, -20));
+            return;
+        }
+        
+        game.lives--;
+        game.sounds.seExplosion();
+        game.spawnParticles(this.x, this.y, '#1E90FF', 30);
+        if (game.lives <= 0) {
+            game.state = 'GAMEOVER';
+            game.sounds.stopBGM();
+            game.sounds.stopSiren();
+            game.sounds.seGameOver();
+        } else {
+            this.x = WIDTH / 2; this.y = HEIGHT - 50;
+            this.arms = true; this.twin = false; this.barrier = false; this.speed = 4;
+            this.invincible = 120; game.enemyBullets = [];
+        }
+    }
+    draw(ctx) {
+        if (this.invincible > 0 && Math.floor(Date.now() / 100) % 2 === 0) return;
+
+        if (this.barrier) {
+            ctx.strokeStyle = 'rgba(255, 100, 100, 0.8)'; ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.arc(this.x, this.y, this.r + 10, 0, Math.PI*2); ctx.stroke();
+        }
+
+        if (this.arms) {
+            ctx.fillStyle = '#1E90FF';
+            ctx.beginPath(); ctx.arc(this.x - 14, this.y, 5, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(this.x + 14, this.y, 5, 0, Math.PI*2); ctx.fill();
+            ctx.strokeStyle = '#FFF'; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(this.x - 10, this.y); ctx.lineTo(this.x - 14, this.y); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(this.x + 10, this.y); ctx.lineTo(this.x + 14, this.y); ctx.stroke();
+        } else {
+            ctx.fillStyle = '#555';
+            ctx.beginPath(); ctx.arc(this.x - 10, this.y, 3, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(this.x + 10, this.y, 3, 0, Math.PI*2); ctx.fill();
+        }
+
+        ctx.fillStyle = '#1E90FF'; ctx.beginPath(); ctx.arc(this.x, this.y, this.r, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#87CEFA'; ctx.beginPath(); ctx.arc(this.x, this.y - 4, this.r * 0.6, 0, Math.PI*2); ctx.fill();
+    }
 }
-window.addEventListener('beforeunload', function(){
-if (isPopupOpen()) popupWin.close();
-});
-// ここまで: ポップアップ機能
 
-  // スケジュール（ローテーション）
-  function getNames(){
-    return [
-      (p1 && p1.value ? p1.value.trim() : ""),
-      (p2 && p2.value ? p2.value.trim() : ""),
-      (p3 && p3.value ? p3.value.trim() : "")
-    ];
-  }
-  function validate(names){
-    if (!names[0] || !names[1] || !names[2]) return "参加者名が空欄です。3名すべて入力してください。";
-    if (names[0]===names[1] || names[0]===names[2] || names[1]===names[2]) return "参加者名が重複しています。区別できる名前にしてください。";
-    return "";
-  }
-  function rngInt(maxExclusive){
-    if (window.crypto && window.crypto.getRandomValues){
-      var a = new Uint32Array(1);
-      window.crypto.getRandomValues(a);
-      return a[0] % maxExclusive;
+class Bullet {
+    constructor(x, y) { this.x = x; this.y = y; this.r = 4; this.active = true; }
+    update() { this.y -= 12; if (this.y < -10) this.active = false; }
+    draw(ctx) {
+        ctx.fillStyle = '#FFFF00'; ctx.beginPath(); ctx.arc(this.x, this.y, this.r, 0, Math.PI*2); ctx.fill();
+        ctx.strokeStyle = '#FF8C00'; ctx.lineWidth = 1; ctx.stroke();
     }
-    return Math.floor(Math.random() * maxExclusive);
-  }
-  function shuffle(arr){
-    var a = arr.slice();
-    for (var i=a.length-1; i>0; i--){
-      var j = rngInt(i+1); var t=a[i]; a[i]=a[j]; a[j]=t;
-    }
-    return a;
-  }
-  function genRotationSchedule(names){
-    var rounds = [];
-    var first = shuffle(names);
-    for (var r=0; r<3; r++){
-      var m = {};
-      for (var i=0; i<3; i++){
-        m[roles[i]] = first[(i+r)%3];
-      }
-      rounds.push(m);
-    }
-    return rounds;
-  }
-  function clearResults(){ resultsEl.innerHTML = ""; }
-  function buildRoundCard(index){
-    var wrap = document.createElement('div'); wrap.className = 'round';
-    var h = document.createElement('h3');
-    var badge = document.createElement('span'); badge.className = 'badge'; badge.textContent = '第' + (index+1) + '回';
-    h.textContent = '割り当て'; h.prepend(badge);
-    wrap.appendChild(h);
-    var list = document.createElement('div'); list.className = 'assign';
-    for (var i=0;i<roles.length;i++){
-      var row = document.createElement('div'); row.className = 'role';
-      var tag = document.createElement('div'); tag.className = 'tag'; tag.textContent = roles[i];
-      var name = document.createElement('div'); name.className = 'name placeholder'; name.textContent = '？？？';
-      row.appendChild(tag); row.appendChild(name); list.appendChild(row);
-    }
-    wrap.appendChild(list);
-    return wrap;
-  }
-  function renderPlaceholders(){
-    clearResults();
-    for (var r=0; r<3; r++){ resultsEl.appendChild(buildRoundCard(r)); }
-  }
-  function revealSchedule(schedule){
-    var cards = Array.prototype.slice.call(resultsEl.querySelectorAll('.round'));
-    var delay = 160, step = 280;
-    for (var rIdx=0; rIdx<cards.length; rIdx++){
-      var rows = Array.prototype.slice.call(cards[rIdx].querySelectorAll('.role'));
-      for (var i=0; i<roles.length; i++){
-        (function(roundIndex, roleIndex, when){
-          var row = rows[roleIndex];
-          var nameEl = row.querySelector('.name');
-          var name = schedule[roundIndex][roles[roleIndex]];
-          setTimeout(function(){
-            nameEl.textContent = name;
-            nameEl.classList.remove('placeholder');
-            row.classList.add('reveal');
-            setTimeout(function(){ row.classList.remove('reveal'); }, 240);
-          }, when);
-        })(rIdx, i, delay);
-        delay += step;
-      }
-    }
-  }
-  function scheduleToText(schedule){
-    var lines = [];
-    for (var r=0; r<schedule.length; r++){
-      lines.push('第' + (r+1) + '回');
-      for (var i=0; i<roles.length; i++){
-        var role = roles[i];
-        lines.push('- ' + role + ': ' + schedule[r][role]);
-      }
-      if (r < schedule.length - 1) lines.push('');
-    }
-    return lines.join('\n');
-  }
-
-  var lastScheduleText = '';
-  function draw(){
-    errEl.style.display = 'none';
-    if (sessionStorage.getItem('consented')!=='1'){ showConsent(); return; }
-    var names = getNames();
-    var msg = validate(names);
-    if (msg){
-      errEl.textContent = msg;
-      errEl.style.display = 'block';
-      return;
-    }
-    var schedule = genRotationSchedule(names);
-    renderPlaceholders();
-    setTimeout(function(){ revealSchedule(schedule); }, 180);
-    redrawBtn.disabled = false;
-    copyBtn.disabled = false;
-    lastScheduleText = scheduleToText(schedule);
-    copyBtn.dataset.text = lastScheduleText;
-  }
-
-  // イベント
-  drawBtn.addEventListener('click', draw);
-  redrawBtn.addEventListener('click', draw);
-  copyBtn.addEventListener('click', function(){
-    var text = copyBtn.dataset.text || lastScheduleText || '';
-    try{
-      if (navigator.clipboard && navigator.clipboard.writeText){
-        navigator.clipboard.writeText(text).then(function(){
-          var old = copyBtn.textContent;
-          copyBtn.textContent = 'コピーしました！';
-          setTimeout(function(){ copyBtn.textContent = old; }, 1300);
-        }, function(){ throw new Error('Clipboard API failed'); });
-      } else {
-        var ta = document.createElement('textarea');
-        ta.value = text; document.body.appendChild(ta);
-        ta.select(); document.execCommand('copy');
-        document.body.removeChild(ta);
-        var old2 = copyBtn.textContent;
-        copyBtn.textContent = 'コピーしました！';
-        setTimeout(function(){ copyBtn.textContent = old2; }, 1300);
-      }
-    } catch(e){
-      alert('コピーに失敗しました。手動でコピーしてください。');
-    }
-  });
-
-  // 初期表示
-function init(){
-renderPlaceholders();
-setPreset(25, 0);
-renderTime(remainingMs);
-updateTimeNote();
 }
-  init();
-})();
+
+class Bomb {
+    constructor(x, y, sounds) {
+        this.x = x; this.y = y; this.vy = -3; this.vz = 5; this.z = 0;
+        this.state = 'FLYING'; this.r = 0; this.active = true; this.timer = 0;
+        this.sounds = sounds;
+    }
+    update() {
+        if (this.state === 'FLYING') {
+            this.z += this.vz; this.vz -= 0.25; this.y += this.vy;
+            if (this.z <= 0) {
+                this.z = 0; this.state = 'EXPLODING';
+                this.sounds.seExplosion();
+            }
+        } else {
+            this.r += 1.5; this.y += 1.5; this.timer++;
+            if (this.timer > 20) this.active = false;
+        }
+    }
+    draw(ctx) {
+        if (this.state === 'EXPLODING') {
+            ctx.fillStyle = `rgba(255, 69, 0, ${1 - this.timer/20})`; ctx.beginPath(); ctx.arc(this.x, this.y, this.r, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = `rgba(255, 255, 0, ${1 - this.timer/20})`; ctx.beginPath(); ctx.arc(this.x, this.y, this.r * 0.6, 0, Math.PI*2); ctx.fill();
+        }
+    }
+}
+
+class EnemyAir {
+    constructor() {
+        this.x = Math.random() * (WIDTH - 40) + 20; this.y = -20; this.r = 12;
+        this.vx = (Math.random() - 0.5) * 2; this.vy = 2 + Math.random();
+        this.active = true; this.timer = 0;
+    }
+    update(game) {
+        this.x += this.vx; this.y += this.vy;
+        if (this.x < this.r || this.x > WIDTH - this.r) this.vx *= -1;
+        this.timer++;
+        if (this.timer % 80 === 0 && Math.random() < 0.5) {
+            game.enemyBullets.push(new EnemyBullet(this.x, this.y, game.player));
+            game.sounds.seEnemyShot();
+        }
+        if (this.y > HEIGHT + 20) this.active = false;
+    }
+    draw(ctx) {
+        ctx.fillStyle = '#FFF'; ctx.beginPath(); ctx.ellipse(this.x - 12, this.y - 4, 8, 4, -0.2, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(this.x + 12, this.y - 4, 8, 4, 0.2, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#FF69B4'; ctx.beginPath(); ctx.arc(this.x, this.y, this.r, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(this.x - 4, this.y - 2, 2, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(this.x + 4, this.y - 2, 2, 0, Math.PI*2); ctx.fill();
+    }
+}
+
+class EnemyBullet {
+    constructor(x, y, player) {
+        this.x = x; this.y = y; this.r = 4;
+        let dx = player.x - x; let dy = player.y - y;
+        let dist = Math.hypot(dx, dy) || 1;
+        this.vx = (dx / dist) * 3; this.vy = (dy / dist) * 3; this.active = true;
+    }
+    update() { this.x += this.vx; this.y += this.vy; if (this.x < -10 || this.x > WIDTH+10 || this.y < -10 || this.y > HEIGHT+10) this.active = false; }
+    draw(ctx) {
+        ctx.fillStyle = '#FF4500'; ctx.beginPath(); ctx.arc(this.x, this.y, this.r, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#FFF'; ctx.beginPath(); ctx.arc(this.x - 1, this.y - 1, 1.5, 0, Math.PI*2); ctx.fill();
+    }
+}
+
+class EnemyGround {
+    constructor() { this.x = Math.random() * (WIDTH - 40) + 20; this.y = -20; this.r = 14; this.active = true; }
+    update() { this.y += 1.5; if (this.y > HEIGHT + 20) this.active = false; }
+    draw(ctx) {
+        ctx.fillStyle = '#8B4513'; ctx.beginPath(); ctx.arc(this.x, this.y, this.r, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#222'; ctx.fillRect(this.x - 4, this.y - 16, 8, 16);
+        ctx.fillStyle = '#A0522D'; ctx.beginPath(); ctx.arc(this.x, this.y, 8, 0, Math.PI*2); ctx.fill();
+    }
+}
+
+class Cloud {
+    constructor(x, y) { this.x = x; this.y = y; this.r = 18; this.active = true; }
+    update() { this.y += 1.5; if (this.y > HEIGHT + 30) this.active = false; }
+    draw(ctx) {
+        ctx.fillStyle = 'rgba(255,255,255,0.9)'; ctx.beginPath();
+        ctx.arc(this.x, this.y - 4, 14, 0, Math.PI*2); ctx.arc(this.x - 12, this.y + 6, 12, 0, Math.PI*2); ctx.arc(this.x + 12, this.y + 6, 12, 0, Math.PI*2); ctx.fill();
+    }
+}
+
+class Bell {
+    constructor(x, y) { this.x = x; this.y = y; this.r = 12; this.vy = -2; this.hitCount = 0; this.active = true; }
+    update() { this.vy += 0.1; if (this.vy > 2.5) this.vy = 2.5; this.y += this.vy; if (this.y > HEIGHT + 20) this.active = false; }
+    hit() { this.hitCount++; this.vy = -4; }
+    getColorIndex() { return Math.floor(this.hitCount / 5) % 4; }
+    draw(ctx) {
+        const colors = ['#FFD700', '#1E90FF', '#FFFFFF', '#FF4500'];
+        ctx.fillStyle = colors[this.getColorIndex()];
+        ctx.beginPath(); ctx.moveTo(this.x, this.y - 8); ctx.quadraticCurveTo(this.x + 10, this.y - 8, this.x + 12, this.y + 8);
+        ctx.lineTo(this.x - 12, this.y + 8); ctx.quadraticCurveTo(this.x - 10, this.y - 8, this.x, this.y - 8); ctx.fill();
+        ctx.strokeStyle = '#000'; ctx.stroke();
+        ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(this.x, this.y + 8, 3, 0, Math.PI*2); ctx.fill();
+    }
+}
+
+class Ambulance {
+    constructor(x, y) { this.x = x; this.y = y; this.r = 16; this.active = true; }
+    update() { this.y += 1.5; if (this.y > HEIGHT + 30) this.active = false; }
+    draw(ctx) {
+        ctx.fillStyle = '#FFF';
+        if(ctx.roundRect) { ctx.beginPath(); ctx.roundRect(this.x - 16, this.y - 12, 32, 24, 4); ctx.fill(); ctx.strokeStyle = '#000'; ctx.stroke(); } 
+        else { ctx.fillRect(this.x - 16, this.y - 12, 32, 24); }
+        ctx.fillStyle = '#FF0000'; ctx.fillRect(this.x - 4, this.y - 6, 8, 12); ctx.fillRect(this.x - 8, this.y - 2, 16, 4);
+        ctx.fillStyle = (Math.floor(Date.now() / 150) % 2 === 0) ? '#FF0000' : '#8B0000'; ctx.beginPath(); ctx.arc(this.x, this.y - 12, 4, Math.PI, 0); ctx.fill();
+        ctx.fillStyle = '#222'; ctx.fillRect(this.x - 12, this.y + 10, 6, 4); ctx.fillRect(this.x + 6, this.y + 10, 6, 4);
+    }
+}
+
+// --- メインゲームシステム ---
+class Game {
+    constructor() {
+        this.state = 'TITLE';
+        this.bg = new Background();
+        this.sounds = new SoundSystem();
+    }
+    init() {
+        this.sounds.startBGM();
+        this.score = 0; this.lives = 3; this.player = new Player();
+        this.bullets = []; this.bombs = [];
+        this.enemiesAir = []; this.enemiesGround = []; this.enemyBullets = [];
+        this.clouds = []; this.bells = []; this.ambulances = []; this.particles = [];
+        this.frame = 0; this.state = 'PLAYING';
+    }
+    spawnParticles(x, y, color, count = 10) {
+        for (let i = 0; i < count; i++) this.particles.push(new Particle(x, y, color));
+    }
+    update() {
+        if (this.state === 'TITLE' || this.state === 'GAMEOVER') {
+            if (keys['Enter']) { this.init(); keys['Enter'] = false; }
+            this.bg.update(); return;
+        }
+
+        this.frame++;
+        this.bg.update();
+        this.player.update(this);
+        this.sounds.updateBGM(); // オーディオスケジュール同期
+
+        if (this.frame % 80 === 0) this.enemiesAir.push(new EnemyAir());
+        if (this.frame % 150 === 0) this.enemiesGround.push(new EnemyGround());
+        if (this.frame % 200 === 0) this.clouds.push(new Cloud(Math.random() * (WIDTH - 60) + 30, -20));
+
+        this.bullets.forEach(b => b.update()); this.bombs.forEach(b => b.update());
+        this.enemiesAir.forEach(e => e.update(this)); this.enemiesGround.forEach(e => e.update());
+        this.enemyBullets.forEach(b => b.update()); this.clouds.forEach(c => c.update());
+        this.bells.forEach(b => b.update()); this.ambulances.forEach(a => a.update());
+        this.particles.forEach(p => p.update());
+
+        this.checkCollisions();
+
+        let hadAmbulance = this.ambulances.length > 0;
+
+        this.bullets = this.bullets.filter(b => b.active); this.bombs = this.bombs.filter(b => b.active);
+        this.enemiesAir = this.enemiesAir.filter(e => e.active); this.enemiesGround = this.enemiesGround.filter(e => e.active);
+        this.enemyBullets = this.enemyBullets.filter(e => e.active); this.clouds = this.clouds.filter(c => c.active);
+        this.bells = this.bells.filter(b => b.active); this.ambulances = this.ambulances.filter(a => a.active);
+        this.particles = this.particles.filter(p => p.active);
+
+        // 救急車がいなくなったらサイレンを止める
+        if (hadAmbulance && this.ambulances.length === 0) {
+            this.sounds.stopSiren();
+        }
+    }
+    
+    checkCollisions() {
+        this.bullets.forEach(b => {
+            if (!b.active) return;
+            this.enemiesAir.forEach(e => {
+                if (e.active && b.active && isCollide(b, e)) {
+                    b.active = false; e.active = false; this.score += 100;
+                    this.sounds.seEnemyHit(); this.spawnParticles(e.x, e.y, '#FF69B4');
+                }
+            });
+            this.clouds.forEach(c => {
+                if (c.active && b.active && isCollide(b, c)) {
+                    b.active = false; c.active = false;
+                    this.sounds.seCloud(); this.bells.push(new Bell(c.x, c.y)); this.spawnParticles(c.x, c.y, '#FFF');
+                }
+            });
+            this.bells.forEach(bell => {
+                if (bell.active && b.active && isCollide(b, bell)) {
+                    b.active = false; bell.hit(); this.sounds.seBellHit();
+                }
+            });
+        });
+
+        this.bombs.forEach(b => {
+            if (b.state === 'EXPLODING' && b.active) {
+                this.enemiesGround.forEach(e => {
+                    if (e.active && isCollide({x: b.x, y: b.y, r: b.r}, e)) {
+                        e.active = false; this.score += 200;
+                        this.sounds.seEnemyHit(); this.spawnParticles(e.x, e.y, '#8B4513');
+                    }
+                });
+            }
+        });
+
+        this.bells.forEach(bell => {
+            if (bell.active && isCollide(this.player, bell)) {
+                bell.active = false; this.sounds.seBellGet();
+                const colorIdx = bell.getColorIndex();
+                if (colorIdx === 0) this.score += 500;
+                else if (colorIdx === 1) this.player.speed = 6.5;
+                else if (colorIdx === 2) this.player.twin = true;
+                else if (colorIdx === 3) this.player.barrier = true;
+                this.spawnParticles(this.player.x, this.player.y, ['#FFD700','#1E90FF','#FFFFFF','#FF4500'][colorIdx]);
+            }
+        });
+
+        this.ambulances.forEach(amb => {
+            if (amb.active && isCollide(this.player, amb)) {
+                amb.active = false;
+                if (!this.player.arms) {
+                    this.player.arms = true; this.score += 500;
+                    this.sounds.seHeal(); this.spawnParticles(this.player.x, this.player.y, '#FFF');
+                }
+            }
+        });
+
+        if (this.player.invincible <= 0) {
+            let hit = false;
+            this.enemiesAir.forEach(e => { if (e.active && isCollide(this.player, e)) { e.active = false; hit = true; } });
+            this.enemyBullets.forEach(b => { if (b.active && isCollide(this.player, b)) { b.active = false; hit = true; } });
+            if (hit) this.player.takeDamage(this);
+        }
+    }
+    
+    draw(ctx) {
+        this.bg.draw(ctx);
+
+        if (this.state === 'TITLE') {
+            ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(0, 0, WIDTH, HEIGHT);
+            ctx.fillStyle = '#FFF'; ctx.textAlign = 'center';
+            ctx.font = 'bold 32px sans-serif'; ctx.fillText('POP TWIN SHOOTER', WIDTH/2, HEIGHT/2 - 20);
+            ctx.font = '16px sans-serif'; ctx.fillText('Press ENTER to Start', WIDTH/2, HEIGHT/2 + 30);
+            return;
+        }
+
+        this.enemiesGround.forEach(e => e.draw(ctx));
+        this.bombs.filter(b => b.state === 'EXPLODING').forEach(b => b.draw(ctx));
+        this.bombs.filter(b => b.state === 'FLYING').forEach(b => {
+            ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.ellipse(b.x, b.y, 6, 3, 0, 0, Math.PI*2); ctx.fill();
+        });
+
+        this.clouds.forEach(c => c.draw(ctx)); this.bells.forEach(b => b.draw(ctx));
+        this.ambulances.forEach(a => a.draw(ctx)); this.enemiesAir.forEach(e => e.draw(ctx));
+        this.enemyBullets.forEach(b => b.draw(ctx));
+
+        this.bombs.filter(b => b.state === 'FLYING').forEach(b => {
+            ctx.fillStyle = '#FF4500'; ctx.beginPath(); ctx.arc(b.x, b.y - b.z, 6, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#FFF'; ctx.beginPath(); ctx.arc(b.x - 2, b.y - b.z - 2, 2, 0, Math.PI*2); ctx.fill();
+        });
+
+        if (this.state === 'PLAYING') this.player.draw(ctx);
+        this.bullets.forEach(b => b.draw(ctx)); this.particles.forEach(p => p.draw(ctx));
+
+        ctx.fillStyle = '#FFF'; ctx.font = 'bold 20px sans-serif';
+        ctx.textAlign = 'left'; ctx.fillText(`SCORE: ${this.score}`, 10, 30);
+        ctx.textAlign = 'right'; ctx.fillText(`LIVES: ${this.lives}`, WIDTH - 10, 30);
+
+        if (this.state === 'GAMEOVER') {
+            ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(0, 0, WIDTH, HEIGHT);
+            ctx.fillStyle = '#FF4500'; ctx.textAlign = 'center';
+            ctx.font = 'bold 40px sans-serif'; ctx.fillText('GAME OVER', WIDTH/2, HEIGHT/2 - 20);
+            ctx.fillStyle = '#FFF'; ctx.font = '20px sans-serif'; ctx.fillText('Press ENTER to Restart', WIDTH/2, HEIGHT/2 + 30);
+        }
+    }
+}
+
+// --- メインループ実行 ---
+let game = new Game();
+function loop() {
+    requestAnimationFrame(loop);
+    game.update();
+    game.draw(ctx);
+}
+loop();
 </script>
 </body>
 </html>
